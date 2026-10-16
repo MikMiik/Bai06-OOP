@@ -1,6 +1,6 @@
 namespace Bai06.Models;
 
-public class BorrowingException : Exception
+public abstract class BorrowingException : Exception
 {
     public BorrowingException(string message)
     : base(message)

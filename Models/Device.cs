@@ -8,6 +8,7 @@ public abstract class Device
     private int _commissionYear;
     private double _price;
     private DeviceStatus _status = DeviceStatus.Available;
+    private int _maxSessionAllowed;
 
     public string DeviceId
     {
@@ -62,12 +63,23 @@ public abstract class Device
         }
     }
 
-    public Device(string deviceId, string deviceName, int commissionYear, double price)
+    public int MaxSessionAllowed
+    {
+        get => _maxSessionAllowed;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            _maxSessionAllowed = value;
+        }
+    }
+
+    public Device(string deviceId, string deviceName, int commissionYear, double price, int maxSessionAllowed)
     {
         DeviceId = deviceId;
         DeviceName = deviceName;
         CommissionYear = commissionYear;
         Price = price;
+        MaxSessionAllowed = maxSessionAllowed;
     }
 
     public abstract double CalculateEstimatedAnnualMaintenanceCosts();

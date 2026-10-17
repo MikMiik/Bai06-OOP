@@ -59,13 +59,24 @@ public class BorrowingSlip
 
     public void AddDevice(Device device, int borrowDays)
     {
+        ArgumentNullException.ThrowIfNull(device, nameof(device));
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(borrowDays, 0, nameof(borrowDays));
+        if (Items.Any(item => item.Device.DeviceId == device.DeviceId))
+        {
+            throw new InvalidOperationException("Thiết bị đã tồn tại trong phiếu mượn.");
+        }
         if (Items.Count >= Borrower.GetMaximumDevices())
         {
             throw new InvalidOperationException("Số lượng thiết bị mượn vượt quá giới hạn cho phép.");
         }
+        if (device.Status != DeviceStatus.Available)
+        {
+            throw new InvalidOperationException("Thiết bị đang không khả dụng.");
+        }
 
         DateTime dueDate = BorrowedDate.AddDays(borrowDays);
         BorrowItem borrowItem = new BorrowItem(device, BorrowedDate, dueDate);
+        device.Status = DeviceStatus.Borrowed;
 
         ((List<BorrowItem>)Items).Add(borrowItem);
     }
@@ -75,7 +86,12 @@ public class BorrowingSlip
         BorrowItem? borrowItem = Items.FirstOrDefault(item => item.Device.DeviceId == deviceId);
         if (borrowItem == null)
         {
-            throw new InvalidOperationException("Thiết bị không tồn tại trong phiếu mượn.");
+            throw new DeviceNotInSlipException(deviceId);
+        }
+
+        if (borrowItem.ReturnedDate.HasValue)
+        {
+            throw new DeviceAlreadyReturnedException(deviceId, borrowItem.ReturnedDate.Value);
         }
 
         borrowItem.ReturnedDate = returnedDate;
@@ -86,6 +102,8 @@ public class BorrowingSlip
             var lateDuration = returnedDate - borrowItem.DueDate;
             lateFee = (decimal)lateDuration.Days * 10;
         }
+
+        borrowItem.Device.Status = DeviceStatus.Available;
 
         return lateFee;
     }

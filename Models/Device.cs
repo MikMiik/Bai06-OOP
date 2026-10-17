@@ -10,6 +10,8 @@ public abstract class Device
     private DeviceStatus _status = DeviceStatus.Available;
     private int _maxSessionAllowed;
 
+    private int _maxDaysAllowed = 7;
+
     public string DeviceId
     {
         get => _deviceId;
@@ -70,6 +72,16 @@ public abstract class Device
         {
             ArgumentOutOfRangeException.ThrowIfNegative(value);
             _maxSessionAllowed = value;
+        }
+    }
+
+    public int MaxDaysAllowed
+    {
+        get => _maxDaysAllowed;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            _maxDaysAllowed = value;
         }
     }
 

@@ -48,13 +48,12 @@ public class BorrowingSlip
         set => _borrowedDate = value;
     }
 
-    public BorrowingSlip(string slipId, IBorrower borrower, string teachingRoom, DateTime borrowedDate, IReadOnlyList<BorrowItem> items)
+    public BorrowingSlip(string slipId, IBorrower borrower, string teachingRoom, DateTime borrowedDate)
     {
         SlipId = slipId;
         Borrower = borrower;
         TeachingRoom = teachingRoom;
         BorrowedDate = borrowedDate;
-        Items = items;
     }
 
     public void AddDevice(Device device, int borrowDays)
@@ -67,11 +66,15 @@ public class BorrowingSlip
         }
         if (Items.Count >= Borrower.GetMaximumDevices())
         {
-            throw new InvalidOperationException("Số lượng thiết bị mượn vượt quá giới hạn cho phép.");
+            throw new BorrowLimitExceededException(Borrower.BorrowerId, Borrower.GetMaximumDevices());
         }
         if (device.Status != DeviceStatus.Available)
         {
-            throw new InvalidOperationException("Thiết bị đang không khả dụng.");
+            throw new DeviceUnavailableException(device.DeviceId, device.Status);
+        }
+        if (borrowDays > device.MaxDaysAllowed)
+        {
+            throw new BorrowDayLimitExceededException(Borrower.BorrowerId, borrowDays, device.MaxDaysAllowed);
         }
 
         DateTime dueDate = BorrowedDate.AddDays(borrowDays);
@@ -94,6 +97,11 @@ public class BorrowingSlip
             throw new DeviceAlreadyReturnedException(deviceId, borrowItem.ReturnedDate.Value);
         }
 
+        if (returnedDate < borrowItem.BorrowedDate)
+        {
+            throw new ReturnBeforeReturnDateException(Borrower.BorrowerId, returnedDate, borrowItem.BorrowedDate);
+        }
+
         borrowItem.ReturnedDate = returnedDate;
 
         decimal lateFee = 0;
@@ -104,7 +112,7 @@ public class BorrowingSlip
         }
 
         borrowItem.Device.Status = DeviceStatus.Available;
-
+        Console.WriteLine($"Device {deviceId} returned. Number of days late: {lateFee / 10}. Late fee: {lateFee}");
         return lateFee;
     }
 
@@ -120,6 +128,20 @@ public class BorrowingSlip
             }
         }
         return totalLateFee;
+    }
+
+    public List<BorrowItem> NotReturnedOrLateDevices()
+    {
+
+        List<BorrowItem> lateOrNotReturnedItems = new List<BorrowItem>();
+        foreach (var item in Items)
+        {
+            if (!item.ReturnedDate.HasValue || item.ReturnedDate.Value > item.DueDate)
+            {
+                lateOrNotReturnedItems.Add(item);
+            }
+        }
+        return lateOrNotReturnedItems;
     }
 
 

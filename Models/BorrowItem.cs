@@ -1,6 +1,5 @@
 namespace Bai06.Models;
 
-using Bai06.Enums;
 public class BorrowItem
 {
     private Device _device = null!;
@@ -11,7 +10,6 @@ public class BorrowItem
     private int _toPeriod;
     private DateTime? _returnedDate = null;
     private bool _isReturned;
-
     public Device Device
     {
         get => _device;
@@ -105,7 +103,6 @@ public class BorrowItem
         ReturnedDate = returnedDate;
         IsReturned = true;
     }
-
     ~BorrowItem()
     {
         Console.WriteLine($"Destructor BorrowItem {Device}.");

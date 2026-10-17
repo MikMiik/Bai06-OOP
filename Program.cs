@@ -1,6 +1,12 @@
 ﻿using Bai06.Models;
 using Bai06.Enums;
 
+/*  
+202418946
+Phạm Văn Minh
+*/
+
+
 // 1. Tạo một giảng viên. 
 Console.WriteLine("1. Tạo một giảng viên.");
 Lecturer lecturer1 = new("L1", "Nguyen Van A");
